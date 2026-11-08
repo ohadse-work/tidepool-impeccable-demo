@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tidepool — today's sea, logged by the swimmers in it</title>
+<meta name="description" content="A fictional demo: Tel Aviv sea temperature, swell and flags, logged by hand at the lifeguard towers every morning.">
+<meta name="theme-color" content="#F7C31E">
+<style>
+@font-face { font-family: "Karantina"; src: url("fonts/Karantina-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Karantina"; src: url("fonts/Karantina-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Assistant"; src: url("fonts/Assistant-Variable.ttf") format("truetype"); font-weight: 200 800; font-display: swap; }
+
+:root {
+  --sky: #F7C31E;
+  --sea: #1FA8A4;
+  --sea-hi: #63CFC4;
+  --deep: #2440A8;
+  --night: #0E1A3A;
+  --paper: #FBF7EC;
+  --ink: #0E1A3A;
+  --flag-red: #D7372B;
+  --display: "Karantina", "Arial Narrow", sans-serif;
+  --text: "Assistant", system-ui, sans-serif;
+  --gutter: clamp(1.25rem, 4vw, 3.5rem);
+  --beat: 6s;
+  --sea-mix: 50%;
+  --swell: 1;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scrollbar-color: var(--deep) var(--sky); }
+body {
+  margin: 0;
+  font-family: var(--text);
+  font-size: clamp(1.0625rem, 0.4vw + 1rem, 1.25rem);
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--night);
+  caret-color: var(--flag-red);
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--ink); color: var(--sky); }
+a { color: inherit; text-underline-offset: 0.22em; text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.on-dark :focus-visible { outline-color: var(--sky); }
+.skip { position: absolute; left: -999px; }
+.skip:focus { left: var(--gutter); top: 0.75rem; z-index: 10; background: var(--ink); color: var(--sky); padding: 0.5rem 0.9rem; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* paper grain, printed over every ink layer */
+.grain { position: relative; isolation: isolate; }
+.grain::after {
+  content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .06 0 0 0 0 .1 0 0 0 0 .23 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.22; mix-blend-mode: multiply;
+}
+
+.wrap { width: min(100% - 2 * var(--gutter), 78rem); margin-inline: auto; }
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(0.75rem, 2vw, 1.75rem); }
+
+/* ---------- SKY (first viewport) ---------- */
+.sky { background: var(--sky); min-height: 100svh; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto; overflow: hidden; }
+.masthead { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding-block: 1.1rem; position: relative; z-index: 4; }
+.wordmark { font-family: var(--display); font-weight: 700; font-size: 2.6rem; line-height: 1; letter-spacing: 0.01em; text-decoration: none; }
+.wordmark span { display: inline-block; font-family: var(--text); font-size: 0.95rem; font-weight: 700; margin-left: 0.9rem; padding-left: 0.9rem; border-left: 2px solid currentColor; letter-spacing: 0; vertical-align: 0.45em; line-height: 1.2; }
+.masthead nav ul { display: flex; gap: clamp(0.9rem, 2.4vw, 2rem); list-style: none; margin: 0; padding: 0; font-weight: 700; }
+.masthead nav a { text-decoration: none; padding-block: 0.4rem; border-bottom: 2px solid transparent; }
+.masthead nav a:hover { border-bottom-color: currentColor; }
+
+.hero { align-items: center; padding-block: clamp(1rem, 3vh, 2.5rem) clamp(1.5rem, 4vh, 3rem); position: relative; z-index: 4; }
+.hero-copy { grid-column: 1 / span 7; }
+.hero h1 {
+  font-family: var(--display); font-weight: 700; margin: 0;
+  font-size: clamp(3.4rem, 7.2vw, 6rem); line-height: 0.9; letter-spacing: 0.005em; text-wrap: balance;
+}
+.hero h1 .beach-name { color: var(--deep); }
+.byline { margin: 1.25rem 0 0; max-width: 42ch; font-size: 1.15em; }
+.byline strong { font-weight: 800; }
+.conditions { display: flex; flex-wrap: wrap; gap: 0.35rem 1.6rem; margin: 1.5rem 0 0; padding: 0; list-style: none; font-weight: 700; }
+.conditions dt { font-weight: 500; }
+.conditions div { display: flex; gap: 0.4rem; }
+.conditions dd { margin: 0; }
+
+.sun-wrap { grid-column: 8 / span 5; display: grid; place-items: center; }
+.sun {
+  position: relative; width: min(34vw, 30rem); aspect-ratio: 1; border-radius: 50%; padding: 12%;
+  background: var(--paper); display: grid; place-items: center; text-align: center;
+  box-shadow: 0.55rem 0.4rem 0 -0.05rem rgba(31, 168, 164, 0.55);
+}
+.sun-reading { font-family: var(--display); font-weight: 700; line-height: 0.8; font-size: clamp(6rem, 14vw, 13rem); color: var(--deep); display: flex; align-items: flex-start; }
+.sun-reading sup { font-size: 0.42em; line-height: 1; margin-top: 0.12em; }
+.sun-caption { font-weight: 700; font-size: 0.95rem; margin-top: 0.35rem; }
+.sun.reprint .sun-reading { animation: reprint 0.55s cubic-bezier(.16,1,.3,1); }
+@keyframes reprint {
+  0% { transform: translate(0.35rem, -0.25rem); opacity: 0.25; filter: blur(2px); }
+  100% { transform: none; opacity: 1; filter: none; }
+}
+
+/* beach selector printed on the horizon */
+.horizon { position: relative; z-index: 5; margin-top: -1px; }
+.beach-picker { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; padding-bottom: 1.1rem; }
+.beach-picker .legend { font-weight: 800; margin-inline-end: 0.75rem; }
+.chip {
+  font: inherit; font-weight: 800; cursor: pointer;
+  border: 2px solid var(--ink); background: transparent; color: var(--ink);
+  padding: 0.45rem 1.05rem; border-radius: 999px; min-height: 44px;
+  transition: background-color .25s cubic-bezier(.16,1,.3,1), color .25s;
+}
+.chip:hover { background: rgba(14, 26, 58, 0.1); }
+.chip[aria-checked="true"] { background: var(--ink); color: var(--sky); }
+
+.sea-band { position: relative; height: clamp(9rem, 24vh, 15rem); background: color-mix(in oklab, var(--deep) var(--sea-mix), var(--sea)); transition: background-color 1.2s cubic-bezier(.16,1,.3,1); }
+.sea-band svg { position: absolute; left: -4%; width: 108%; height: 100%; }
+.wave { animation: swell var(--beat) ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+.wave-2 { animation-delay: calc(var(--beat) * -0.5); }
+@keyframes swell { from { transform: translate(-1.5%, 0) scaleY(1); } to { transform: translate(1.5%, -3%) scaleY(calc(1 + 0.08 * var(--swell))); } }
+.swimmers { position: absolute; inset: 30% 0 auto 0; height: 22%; }
+.cap { position: absolute; width: 0.95rem; height: 0.7rem; border-radius: 50% 50% 40% 40%; background: var(--flag-red); animation: bob var(--beat) ease-in-out infinite; }
+.cap:nth-child(3n) { background: var(--paper); }
+.cap:nth-child(4n) { background: var(--sky); }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(calc(0.45rem * var(--swell))); } }
+.in-water { position: absolute; right: var(--gutter); bottom: 1rem; color: var(--paper); font-weight: 800; font-size: 1rem; z-index: 4; }
+.in-water .dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--sky); margin-inline-end: 0.45rem; }
+
+/* ---------- SEA (log + week) ---------- */
+.sea { background: var(--sea); color: var(--ink); padding-block: clamp(4rem, 10vw, 8rem); }
+.section-head { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.5rem 2rem; margin-bottom: 2rem; }
+h2 { font-family: var(--display); font-weight: 700; font-size: clamp(2.8rem, 6vw, 5.2rem); line-height: 0.92; margin: 0; text-wrap: balance; }
+.synthetic { font-weight: 700; font-size: 0.95rem; }
+
+.log { grid-column: 1 / -1; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; min-width: 40rem; }
+th, td { text-align: left; padding: 0.75rem 1rem 0.75rem 0; vertical-align: baseline; }
+thead th { font-weight: 800; border-bottom: 3px solid var(--ink); font-size: 0.95rem; }
+tbody tr { border-bottom: 1px solid rgba(14, 26, 58, 0.35); }
+td.temp { font-family: var(--display); font-weight: 700; font-size: 2rem; line-height: 1; }
+td.who { font-weight: 600; }
+.jelly-yes { font-weight: 800; color: #7A1610; }
+
+.week { grid-column: 1 / -1; margin-top: clamp(4rem, 9vw, 7rem); }
+.week h3 { font-family: var(--display); font-weight: 700; font-size: clamp(2.2rem, 4.4vw, 3.6rem); line-height: 0.95; margin: 0 0 0.6rem; }
+.week p { margin: 0 0 2rem; max-width: 60ch; }
+.bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: clamp(0.4rem, 1.4vw, 1rem); align-items: end; height: 16rem; }
+.bar { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+.bar .col { background: var(--deep); border-radius: 0.3rem 0.3rem 0 0; position: relative; transition: height .9s cubic-bezier(.16,1,.3,1); }
+.bar .col.today { background: var(--night); }
+.bar .val { font-family: var(--display); font-weight: 700; font-size: clamp(1.3rem, 2.4vw, 1.9rem); line-height: 1; margin-bottom: 0.35rem; }
+.bar .day { font-weight: 800; margin-top: 0.55rem; font-size: 0.95rem; }
+
+/* ---------- DEEP (how + flags) ---------- */
+.deep { background: var(--deep); color: var(--paper); padding-block: clamp(4.5rem, 11vw, 9rem); }
+.how { grid-column: 1 / -1; }
+.how h2 { font-size: clamp(2rem, 3.4vw, 3rem); color: var(--sky); }
+.how ol { list-style: none; margin: 1.75rem 0 0; padding: 0; }
+.how li { font-family: var(--display); font-weight: 700; font-size: clamp(2.4rem, 6vw, 5.4rem); line-height: 0.95; padding-block: 1rem 0.7rem; border-top: 2px solid rgba(251, 247, 236, 0.4); }
+.how li span { color: var(--sky); }
+.how p.note { max-width: 58ch; margin-top: 1.75rem; }
+
+.flags { grid-column: 1 / -1; margin-top: clamp(5rem, 11vw, 8rem); }
+.flags-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1rem, 3vw, 2.5rem); margin-top: 2rem; }
+.flag { display: grid; grid-template-columns: 3.8rem 1fr; gap: 0.9rem; align-items: start; }
+.pole { width: 4px; height: 5.5rem; background: var(--paper); position: relative; border-radius: 2px; }
+.cloth { position: absolute; left: 4px; top: 0; width: 3.2rem; height: 2.2rem; border-radius: 0 0.25rem 0.25rem 0; animation: wave-flag var(--beat) ease-in-out infinite; transform-origin: left center; }
+@keyframes wave-flag { 0%,100% { transform: skewY(0deg); } 50% { transform: skewY(-5deg) scaleX(0.94); } }
+.cloth.white { background: var(--paper); }
+.cloth.red { background: var(--flag-red); }
+.cloth.black { background: #0A0A0A; outline: 2px solid rgba(251,247,236,.6); }
+.flag h3 { font-family: var(--display); font-weight: 700; font-size: 2.2rem; line-height: 1; margin: 0 0 0.35rem; }
+.flag p { margin: 0; }
+.rule { margin-top: 2.25rem; font-weight: 800; font-size: 1.2em; }
+
+/* ---------- NIGHT (join) ---------- */
+.night { background: var(--night); color: var(--paper); padding-block: clamp(4.5rem, 11vw, 9rem) 2.5rem; }
+.join { grid-column: 1 / span 8; }
+.join h2 { color: var(--sky); }
+.join p { max-width: 52ch; }
+form { display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 0.75rem; margin-top: 2rem; align-items: end; }
+label { display: grid; gap: 0.35rem; font-weight: 700; font-size: 0.95rem; }
+input, select {
+  font: inherit; color: var(--ink); background: var(--paper); border: 2px solid var(--paper);
+  border-radius: 0.4rem; padding: 0.65rem 0.8rem; min-height: 48px; width: 100%;
+}
+input::placeholder { color: #5B6684; }
+input[aria-invalid="true"] { border-color: var(--flag-red); }
+.btn {
+  font: inherit; font-weight: 800; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--sky); color: var(--ink); padding: 0.75rem 1.6rem; min-height: 48px;
+  transition: transform .2s cubic-bezier(.16,1,.3,1), background-color .2s;
+}
+.btn:hover { background: #FFD54A; }
+.btn:active { transform: translateY(1px); }
+.form-msg { grid-column: 1 / -1; min-height: 1.6em; margin: 0.25rem 0 0; font-weight: 700; color: var(--sky); }
+.form-msg.err { color: #FF8A80; }
+
+footer { margin-top: clamp(4rem, 9vw, 7rem); padding-top: 1.5rem; border-top: 1px solid rgba(251, 247, 236, 0.25); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; font-size: 0.95rem; color: #C9CDE0; }
+footer strong { color: var(--paper); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 860px) {
+  .masthead nav { display: none; }
+  .hero { display: flex; flex-direction: column; align-items: stretch; }
+  .hero-copy { min-width: 0; order: 2; }
+  .sun-wrap { order: 1; justify-items: end; margin-bottom: -0.5rem; }
+  .sun { width: min(46vw, 13rem); padding: 8%; }
+  .sun-reading { font-size: clamp(3.6rem, 15vw, 5.5rem); }
+  .sun-caption { font-size: 0.8rem; }
+  table { min-width: 0; font-size: 0.9rem; }
+  th, td { padding: 0.6rem 0.55rem 0.6rem 0; }
+  td.temp { font-size: 1.45rem; }
+  .beach-picker { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 1rem; }
+  .beach-picker .legend { display: none; }
+  .chip { flex: none; }
+  .flags-row { grid-template-columns: 1fr; }
+  .join { grid-column: 1 / -1; }
+  form { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#log">Skip to this morning's log</a>
+
+<header class="sky grain" id="today">
+  <div class="wrap masthead">
+    <a class="wordmark" href="#today" aria-label="Tidepool home">Tidepool<span lang="he" dir="rtl">בוקר טוב, ים</span></a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="#log">Log</a></li>
+        <li><a href="#week">Week</a></li>
+        <li><a href="#flags">Flags</a></li>
+        <li><a href="#join">Join the swim</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="wrap grid hero">
+    <div class="hero-copy">
+      <h1>The sea at <span class="beach-name" data-f="beach">Gordon</span>, <span class="num" data-f="time">06:12</span> this morning.</h1>
+      <p class="byline">Dipped by <strong data-f="by">Noa R.</strong> at the <span data-f="beach2">Gordon</span> lifeguard tower — read by hand, not by forecast.</p>
+      <dl class="conditions" aria-live="polite">
+        <div><dt>Swell</dt><dd class="num" data-f="swell">0.4 m</dd></div>
+        <div><dt>Wind</dt><dd class="num" data-f="wind">NW 9 km/h</dd></div>
+        <div><dt>Jellyfish</dt><dd data-f="jelly">none seen</dd></div>
+      </dl>
+    </div>
+    <div class="sun-wrap">
+      <div class="sun" id="sun" role="img" aria-label="Water temperature 19.4 degrees Celsius">
+        <div>
+          <div class="sun-reading num"><span data-f="temp">19.4</span><sup>°C</sup></div>
+          <div class="sun-caption">water, at arm's depth</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="horizon">
+    <div class="wrap beach-picker" role="radiogroup" aria-label="Choose your beach">
+      <span class="legend" aria-hidden="true">Your beach</span>
+      <button class="chip" role="radio" aria-checked="false" data-beach="hilton">Hilton</button>
+      <button class="chip" role="radio" aria-checked="true" data-beach="gordon">Gordon</button>
+      <button class="chip" role="radio" aria-checked="false" data-beach="frishman">Frishman</button>
+      <button class="chip" role="radio" aria-checked="false" data-beach="banana">Banana</button>
+      <button class="chip" role="radio" aria-checked="false" data-beach="jaffa">Jaffa</button>
+    </div>
+    <div class="sea-band" id="sea">
+      <svg viewBox="0 0 1600 200" preserveAspectRatio="none" aria-hidden="true">
+        <path class="wave" id="w1" fill="#63CFC4" d=""/>
+        <path class="wave wave-2" id="w2" fill="rgba(36,64,168,.55)" d=""/>
+      </svg>
+      <div class="swimmers" id="swimmers" aria-hidden="true"></div>
+      <p class="in-water" aria-live="polite"><span class="dot" aria-hidden="true"></span><span class="num" data-f="inwater">23</span> swimmers in the water now</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="sea grain" id="log" aria-labelledby="log-h">
+    <div class="wrap grid">
+      <div class="section-head">
+        <h2 id="log-h">This morning's log</h2>
+        <p class="synthetic">Demo data — every name and reading here is invented.</p>
+      </div>
+      <div class="log" tabindex="0" role="region" aria-labelledby="log-h">
+        <table>
+          <thead><tr><th scope="col">Time</th><th scope="col">Beach</th><th scope="col">Logged by</th><th scope="col">Water</th><th scope="col">Swell</th><th scope="col">Jellyfish</th></tr></thead>
+          <tbody id="log-rows"></tbody>
+        </table>
+      </div>
+
+      <div class="week" id="week">
+        <h3>A week in the water</h3>
+        <p id="week-note">The sea is cooling into winter: Tuesday's dip at Banana was the coldest of the week.</p>
+        <div class="bars" id="bars" role="img" aria-label="Average water temperature over the last seven days"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="deep grain on-dark" aria-labelledby="how-h">
+    <div class="wrap grid">
+      <div class="how">
+        <h2 id="how-h">How a reading is made</h2>
+        <ol>
+          <li>Wade in to <span>arm's depth</span>.</li>
+          <li>Hold the thermometer for <span>sixty seconds</span>.</li>
+          <li>Post it <span>before you towel off</span>.</li>
+        </ol>
+        <p class="note">A reading carries the tower, the minute and the swimmer who took it. Two readings from the same tower within ten minutes are averaged, so one cold hand can't scare off the whole beach.</p>
+      </div>
+
+      <div class="flags" id="flags">
+        <h2>Read the flag before the number</h2>
+        <div class="flags-row">
+          <div class="flag"><div class="pole"><div class="cloth white"></div></div><div><h3>White</h3><p>Calm sea. Swimming permitted at a guarded beach.</p></div></div>
+          <div class="flag"><div class="pole"><div class="cloth red"></div></div><div><h3>Red</h3><p>Swimming is dangerous. Stay close to the lifeguard and to shore.</p></div></div>
+          <div class="flag"><div class="pole"><div class="cloth black"></div></div><div><h3>Black</h3><p>Swimming forbidden. No reading here changes that.</p></div></div>
+        </div>
+        <p class="rule">Swim only where a lifeguard is on duty.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="night on-dark" id="join" aria-labelledby="join-h">
+    <div class="wrap grid">
+      <div class="join">
+        <h2 id="join-h">Join the 06:00 swim</h2>
+        <p>Get tomorrow's first reading from your beach before the alarm goes off, and meet the regulars at the tower.</p>
+        <form id="join-form" novalidate>
+          <label>Email<input type="email" name="email" placeholder="you@example.com" autocomplete="email" required aria-describedby="form-msg"></label>
+          <label>Beach
+            <select name="beach"><option>Hilton</option><option selected>Gordon</option><option>Frishman</option><option>Banana</option><option>Jaffa</option></select>
+          </label>
+          <button class="btn" type="submit">Count me in</button>
+          <p class="form-msg" id="form-msg" role="status"></p>
+        </form>
+      </div>
+    </div>
+    <div class="wrap">
+      <footer>
+        <p><strong>Tidepool is a fictional product</strong>, built to demo the Impeccable design skill. All readings, names and counts are synthetic.</p>
+        <p>Tel Aviv–Yafo · Mediterranean</p>
+      </footer>
+    </div>
+  </section>
+</main>
+
+<script>
+const BEACHES = {
+  hilton:   { beach: "Hilton",   time: "05:58", by: "Avi K.",   temp: 19.1, swell: 0.6, wind: "NW 11 km/h", jelly: "none seen",       inwater: 14 },
+  gordon:   { beach: "Gordon",   time: "06:12", by: "Noa R.",   temp: 19.4, swell: 0.4, wind: "NW 9 km/h",  jelly: "none seen",       inwater: 23 },
+  frishman: { beach: "Frishman", time: "06:05", by: "Dana S.",  temp: 19.6, swell: 0.4, wind: "W 8 km/h",   jelly: "a few, small",    inwater: 17 },
+  banana:   { beach: "Banana",   time: "06:21", by: "Yoni M.",  temp: 18.7, swell: 0.8, wind: "W 14 km/h",  jelly: "none seen",       inwater: 9 },
+  jaffa:    { beach: "Jaffa",    time: "06:34", by: "Maya L.",  temp: 20.1, swell: 0.3, wind: "SW 6 km/h",  jelly: "none seen",       inwater: 6 }
+};
+const LOG = [
+  ["05:58","Hilton","Avi K.",19.1,"0.6 m","none"],
+  ["06:05","Frishman","Dana S.",19.6,"0.4 m","a few, small"],
+  ["06:12","Gordon","Noa R.",19.4,"0.4 m","none"],
+  ["06:16","Gordon","Itai B.",19.3,"0.4 m","none"],
+  ["06:21","Banana","Yoni M.",18.7,"0.8 m","none"],
+  ["06:27","Frishman","Rina G.",19.7,"0.4 m","a few, small"],
+  ["06:34","Jaffa","Maya L.",20.1,"0.3 m","none"],
+  ["06:40","Hilton","Shira T.",19.0,"0.6 m","none"]
+];
+const WEEK = [["Mon",20.3],["Tue",18.6],["Wed",19.0],["Thu",19.8],["Fri",19.5],["Sat",19.2],["Today",19.4]];
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function wavePath(amp, phase, y0) {
+  let d = `M0 ${y0}`;
+  for (let x = 0; x <= 1600; x += 20) {
+    const y = y0 + Math.sin((x / 1600) * Math.PI * 8 + phase) * amp;
+    d += ` L${x} ${y.toFixed(1)}`;
+  }
+  return d + " L1600 200 L0 200 Z";
+}
+function drawSea(b) {
+  const amp = 6 + b.swell * 22;
+  $("#w1").setAttribute("d", wavePath(amp, 0, 70));
+  $("#w2").setAttribute("d", wavePath(amp * 0.7, 1.4, 120));
+  const mix = Math.round(Math.min(85, Math.max(15, (20.5 - b.temp) * 30 + 30)));
+  document.documentElement.style.setProperty("--sea-mix", mix + "%");
+  document.documentElement.style.setProperty("--swell", (b.swell / 0.4).toFixed(2));
+  const sw = $("#swimmers");
+  sw.innerHTML = "";
+  for (let i = 0; i < b.inwater; i++) {
+    const c = document.createElement("span");
+    c.className = "cap";
+    c.style.left = (4 + ((i * 37) % 86) + (i % 3) * 1.3) + "%";
+    c.style.top = ((i * 29) % 80) + "%";
+    c.style.animationDelay = (-(i * 0.37) % 6).toFixed(2) + "s";
+    sw.appendChild(c);
+  }
+}
+function countTo(el, target) {
+  if (reduce) { el.textContent = target.toFixed(1); return; }
+  const from = parseFloat(el.textContent) || target, t0 = performance.now(), dur = 700;
+  const step = t => {
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(2, -10 * k);
+    el.textContent = (from + (target - from) * e).toFixed(1);
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+function select(key, focus) {
+  const b = BEACHES[key];
+  $$(".chip").forEach(c => { const on = c.dataset.beach === key; c.setAttribute("aria-checked", on); c.tabIndex = on ? 0 : -1; if (on && focus) c.focus(); });
+  $$("[data-f]").forEach(el => {
+    const f = el.dataset.f;
+    if (f === "temp") return;
+    if (f === "beach2") el.textContent = b.beach;
+    else if (f === "swell") el.textContent = b.swell.toFixed(1) + " m";
+    else if (b[f] !== undefined) el.textContent = b[f];
+  });
+  countTo($('[data-f="temp"]'), b.temp);
+  $("#sun").setAttribute("aria-label", `Water temperature ${b.temp} degrees Celsius at ${b.beach}`);
+  const sun = $("#sun"); sun.classList.remove("reprint"); void sun.offsetWidth; sun.classList.add("reprint");
+  drawSea(b);
+  $('#join-form select').value = b.beach;
+}
+$$(".chip").forEach(c => {
+  c.addEventListener("click", () => select(c.dataset.beach));
+  c.addEventListener("keydown", e => {
+    const keys = Object.keys(BEACHES), i = keys.indexOf(c.dataset.beach);
+    if (["ArrowRight","ArrowDown"].includes(e.key)) { e.preventDefault(); select(keys[(i + 1) % keys.length], true); }
+    if (["ArrowLeft","ArrowUp"].includes(e.key)) { e.preventDefault(); select(keys[(i - 1 + keys.length) % keys.length], true); }
+  });
+});
+
+$("#log-rows").innerHTML = LOG.map(r => `<tr><td class="num">${r[0]}</td><td>${r[1]}</td><td class="who">${r[2]}</td><td class="temp num">${r[3].toFixed(1)}°</td><td class="num">${r[4]}</td><td class="${r[5] === "none" ? "" : "jelly-yes"}">${r[5]}</td></tr>`).join("");
+
+const lo = 17.5, hi = 21;
+$("#bars").innerHTML = WEEK.map(([d, t]) => `<div class="bar"><span class="val num">${t.toFixed(1)}°</span><div class="col${d === "Today" ? " today" : ""}" style="height:${((t - lo) / (hi - lo) * 100).toFixed(0)}%"></div><span class="day">${d}</span></div>`).join("");
+
+$("#join-form").addEventListener("submit", e => {
+  e.preventDefault();
+  const email = e.target.email, msg = $("#form-msg");
+  if (!email.value || !email.checkValidity()) {
+    email.setAttribute("aria-invalid", "true");
+    msg.className = "form-msg err";
+    msg.textContent = "That email doesn't look complete — check for the @ and the domain.";
+    email.focus();
+    return;
+  }
+  email.removeAttribute("aria-invalid");
+  msg.className = "form-msg";
+  msg.textContent = `You're on the ${e.target.beach.value} list. This is a demo, so nothing was sent — but the sea is real.`;
+});
+
+$$(".chip").forEach(c => c.tabIndex = c.getAttribute("aria-checked") === "true" ? 0 : -1);
+drawSea(BEACHES.gordon);
+</script>
+</body>
+</html>
