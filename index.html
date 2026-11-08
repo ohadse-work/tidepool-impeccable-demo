@@ -69,7 +69,7 @@ a { color: inherit; text-underline-offset: 0.22em; text-decoration-thickness: 2p
 .masthead nav a { text-decoration: none; padding-block: 0.4rem; border-bottom: 2px solid transparent; }
 .masthead nav a:hover { border-bottom-color: currentColor; }
 
-.hero { align-items: center; padding-block: clamp(1rem, 3vh, 2.5rem) clamp(1.5rem, 4vh, 3rem); position: relative; z-index: 4; }
+.hero { align-items: center; padding-block: clamp(0.25rem, 1vh, 1rem) clamp(0.75rem, 2vh, 1.5rem); position: relative; z-index: 4; }
 .hero-copy { grid-column: 1 / span 7; }
 .hero h1 {
   font-family: var(--display); font-weight: 700; margin: 0;
@@ -85,11 +85,12 @@ a { color: inherit; text-underline-offset: 0.22em; text-decoration-thickness: 2p
 
 .sun-wrap { grid-column: 8 / span 5; display: grid; place-items: center; }
 .sun {
-  position: relative; width: min(34vw, 30rem); aspect-ratio: 1; border-radius: 50%; padding: 12%;
+  position: relative; width: min(26vw, 22rem); aspect-ratio: 1; border-radius: 50%; padding: 12%;
   background: var(--paper); display: grid; place-items: center; text-align: center;
-  box-shadow: 0.55rem 0.4rem 0 -0.05rem rgba(31, 168, 164, 0.55);
 }
-.sun-reading { font-family: var(--display); font-weight: 700; line-height: 0.8; font-size: clamp(6rem, 14vw, 13rem); color: var(--deep); display: flex; align-items: flex-start; }
+.sun::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--sea); transform: translate(7px, 5px); z-index: -1; mix-blend-mode: multiply; }
+.misreg { text-shadow: 0.045em 0.03em 0 var(--sea); }
+.sun-reading { font-family: var(--display); font-weight: 700; line-height: 0.8; font-size: clamp(5.5rem, 10.5vw, 10rem); color: var(--deep); display: flex; align-items: flex-start; }
 .sun-reading sup { font-size: 0.42em; line-height: 1; margin-top: 0.12em; }
 .sun-caption { font-weight: 700; font-size: 0.95rem; margin-top: 0.35rem; }
 .sun.reprint .sun-reading { animation: reprint 0.55s cubic-bezier(.16,1,.3,1); }
@@ -104,14 +105,14 @@ a { color: inherit; text-underline-offset: 0.22em; text-decoration-thickness: 2p
 .beach-picker .legend { font-weight: 800; margin-inline-end: 0.75rem; }
 .chip {
   font: inherit; font-weight: 800; cursor: pointer;
-  border: 2px solid var(--ink); background: transparent; color: var(--ink);
+  border: 2px solid var(--ink); background: var(--paper); color: var(--ink);
   padding: 0.45rem 1.05rem; border-radius: 999px; min-height: 44px;
   transition: background-color .25s cubic-bezier(.16,1,.3,1), color .25s;
 }
-.chip:hover { background: rgba(14, 26, 58, 0.1); }
+.chip:hover { background: #fff; }
 .chip[aria-checked="true"] { background: var(--ink); color: var(--sky); }
 
-.sea-band { position: relative; height: clamp(9rem, 24vh, 15rem); background: color-mix(in oklab, var(--deep) var(--sea-mix), var(--sea)); transition: background-color 1.2s cubic-bezier(.16,1,.3,1); }
+.sea-band { position: relative; height: clamp(14rem, 40svh, 26rem); background: color-mix(in oklab, var(--deep) var(--sea-mix), var(--sea)); transition: background-color 1.2s cubic-bezier(.16,1,.3,1); }
 .sea-band svg { position: absolute; left: -4%; width: 108%; height: 100%; }
 .wave { animation: swell var(--beat) ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
 .wave-2 { animation-delay: calc(var(--beat) * -0.5); }
@@ -121,7 +122,7 @@ a { color: inherit; text-underline-offset: 0.22em; text-decoration-thickness: 2p
 .cap:nth-child(3n) { background: var(--paper); }
 .cap:nth-child(4n) { background: var(--sky); }
 @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(calc(0.45rem * var(--swell))); } }
-.in-water { position: absolute; right: var(--gutter); bottom: 1rem; color: var(--paper); font-weight: 800; font-size: 1rem; z-index: 4; }
+.in-water { position: absolute; right: var(--gutter); bottom: 1.25rem; margin: 0; color: var(--paper); background: var(--night); padding: 0.45rem 1rem; border-radius: 999px; font-weight: 800; font-size: 1.2rem; z-index: 4; }
 .in-water .dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--sky); margin-inline-end: 0.45rem; }
 
 /* ---------- SEA (log + week) ---------- */
@@ -137,16 +138,18 @@ thead th { font-weight: 800; border-bottom: 3px solid var(--ink); font-size: 0.9
 tbody tr { border-bottom: 1px solid rgba(14, 26, 58, 0.35); }
 td.temp { font-family: var(--display); font-weight: 700; font-size: 2rem; line-height: 1; }
 td.who { font-weight: 600; }
-.jelly-yes { font-weight: 800; color: #7A1610; }
+.jelly-yes { font-weight: 800; color: var(--ink); white-space: nowrap; }
+.jelly-yes svg { width: 1rem; height: 1rem; vertical-align: -0.15em; margin-inline-end: 0.35rem; }
 
 .week { grid-column: 1 / -1; margin-top: clamp(4rem, 9vw, 7rem); }
 .week h3 { font-family: var(--display); font-weight: 700; font-size: clamp(2.2rem, 4.4vw, 3.6rem); line-height: 0.95; margin: 0 0 0.6rem; }
 .week p { margin: 0 0 2rem; max-width: 60ch; }
 .bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: clamp(0.4rem, 1.4vw, 1rem); align-items: end; height: 16rem; }
 .bar { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
-.bar .col { background: var(--deep); border-radius: 0.3rem 0.3rem 0 0; position: relative; transition: height .9s cubic-bezier(.16,1,.3,1); }
+.bar .col { background: var(--deep); border-radius: 0; position: relative; transition: height .9s cubic-bezier(.16,1,.3,1); }
 .bar .col.today { background: var(--night); }
 .bar .val { font-family: var(--display); font-weight: 700; font-size: clamp(1.3rem, 2.4vw, 1.9rem); line-height: 1; margin-bottom: 0.35rem; }
+.scale-note { margin: 0.9rem 0 0 !important; font-weight: 700; font-size: 0.95rem; }
 .bar .day { font-weight: 800; margin-top: 0.55rem; font-size: 0.95rem; }
 
 /* ---------- DEEP (how + flags) ---------- */
@@ -199,12 +202,14 @@ footer strong { color: var(--paper); }
 
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
-  .masthead nav { display: none; }
+  .masthead nav li:not(:last-child) { display: none; }
+  .wordmark span { display: none; }
   .hero { display: flex; flex-direction: column; align-items: stretch; }
   .hero-copy { min-width: 0; order: 2; }
-  .sun-wrap { order: 1; justify-items: end; margin-bottom: -0.5rem; }
-  .sun { width: min(46vw, 13rem); padding: 8%; }
-  .sun-reading { font-size: clamp(3.6rem, 15vw, 5.5rem); }
+  .sun-wrap { order: 1; justify-items: end; margin: 0 -14vw 0.5rem 0; }
+  .sun { width: min(80vw, 21rem); padding: 10%; }
+  .sun-reading { font-size: clamp(5rem, 24vw, 7.5rem); }
+  .in-water { font-size: 1.05rem; right: 50%; transform: translateX(50%); white-space: nowrap; }
   .sun-caption { font-size: 0.8rem; }
   table { min-width: 0; font-size: 0.9rem; }
   th, td { padding: 0.6rem 0.55rem 0.6rem 0; }
@@ -241,7 +246,7 @@ footer strong { color: var(--paper); }
 
   <div class="wrap grid hero">
     <div class="hero-copy">
-      <h1>The sea at <span class="beach-name" data-f="beach">Gordon</span>, <span class="num" data-f="time">06:12</span> this morning.</h1>
+      <h1 class="misreg">The sea at <span class="beach-name" data-f="beach">Gordon</span>, <span class="num" data-f="time">06:12</span> this morning.</h1>
       <p class="byline">Dipped by <strong data-f="by">Noa R.</strong> at the <span data-f="beach2">Gordon</span> lifeguard tower — read by hand, not by forecast.</p>
       <dl class="conditions" aria-live="polite">
         <div><dt>Swell</dt><dd class="num" data-f="swell">0.4 m</dd></div>
@@ -252,7 +257,7 @@ footer strong { color: var(--paper); }
     <div class="sun-wrap">
       <div class="sun" id="sun" role="img" aria-label="Water temperature 19.4 degrees Celsius">
         <div>
-          <div class="sun-reading num"><span data-f="temp">19.4</span><sup>°C</sup></div>
+          <div class="sun-reading num misreg"><span data-f="temp">19.4</span><sup>°C</sup></div>
           <div class="sun-caption">water, at arm's depth</div>
         </div>
       </div>
@@ -296,7 +301,8 @@ footer strong { color: var(--paper); }
       <div class="week" id="week">
         <h3>A week in the water</h3>
         <p id="week-note">The sea is cooling into winter: Tuesday's dip at Banana was the coldest of the week.</p>
-        <div class="bars" id="bars" role="img" aria-label="Average water temperature over the last seven days"></div>
+        <div class="bars" id="bars" role="img"></div>
+        <p class="scale-note">Bars start at 17.5 °C so a one-degree change is visible. Values are synthetic.</p>
       </div>
     </div>
   </section>
@@ -325,7 +331,7 @@ footer strong { color: var(--paper); }
     </div>
   </section>
 
-  <section class="night on-dark" id="join" aria-labelledby="join-h">
+  <section class="night grain on-dark" id="join" aria-labelledby="join-h">
     <div class="wrap grid">
       <div class="join">
         <h2 id="join-h">Join the 06:00 swim</h2>
@@ -367,6 +373,7 @@ const LOG = [
   ["06:34","Jaffa","Maya L.",20.1,"0.3 m","none"],
   ["06:40","Hilton","Shira T.",19.0,"0.6 m","none"]
 ];
+const JELLY = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8a6 6 0 0 1 12 0Z" fill="#D7372B"/><path d="M4.5 9v4.5M8 9v6M11.5 9v4.5" stroke="#D7372B" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>';
 const WEEK = [["Mon",20.3],["Tue",18.6],["Wed",19.0],["Thu",19.8],["Fri",19.5],["Sat",19.2],["Today",19.4]];
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -434,9 +441,10 @@ $$(".chip").forEach(c => {
   });
 });
 
-$("#log-rows").innerHTML = LOG.map(r => `<tr><td class="num">${r[0]}</td><td>${r[1]}</td><td class="who">${r[2]}</td><td class="temp num">${r[3].toFixed(1)}°</td><td class="num">${r[4]}</td><td class="${r[5] === "none" ? "" : "jelly-yes"}">${r[5]}</td></tr>`).join("");
+$("#log-rows").innerHTML = LOG.map(r => `<tr><td class="num">${r[0]}</td><td>${r[1]}</td><td class="who">${r[2]}</td><td class="temp num">${r[3].toFixed(1)}°</td><td class="num">${r[4]}</td><td class="${r[5] === "none" ? "" : "jelly-yes"}">${r[5] === "none" ? "none" : JELLY + r[5]}</td></tr>`).join("");
 
 const lo = 17.5, hi = 21;
+$("#bars").setAttribute("aria-label", "Water temperature, last seven days: " + WEEK.map(([d, t]) => `${d} ${t.toFixed(1)} degrees`).join(", "));
 $("#bars").innerHTML = WEEK.map(([d, t]) => `<div class="bar"><span class="val num">${t.toFixed(1)}°</span><div class="col${d === "Today" ? " today" : ""}" style="height:${((t - lo) / (hi - lo) * 100).toFixed(0)}%"></div><span class="day">${d}</span></div>`).join("");
 
 $("#join-form").addEventListener("submit", e => {
